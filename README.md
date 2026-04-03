@@ -10,3 +10,10 @@ The UI should be intutive and input should be seamless..
 
 Note: for simplicity assume all players are right handed
 can you give it a web app with code ?
+
+# Url
+https://aravindgear4.github.io/badminton_placement_game/
+
+# Improvements:
+- Hint is wrong showing my side of the court
+- Not intuitive, confused about what to do when
