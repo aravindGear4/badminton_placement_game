@@ -3,448 +3,127 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Shuttle IQ — Badminton Positioning Trainer</title>
+<title>ShuttleIQ — Badminton Positioning Trainer</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --court-green: #1a4a1a;
-  --court-line: rgba(255,255,255,0.85);
-  --you-color: #38bdf8;
-  --opp-color: #fb923c;
-  --shuttle-color: #facc15;
   --accent: #a3e635;
-  --accent2: #f472b6;
+  --you: #38bdf8;
+  --opp: #fb923c;
+  --shuttle: #facc15;
   --bg: #0a0e0a;
   --surface: #111811;
   --surface2: #192019;
   --border: rgba(255,255,255,0.08);
   --text: #f0f4f0;
-  --text-muted: #6b7a6b;
-  --text-dim: #3d473d;
-  --rating-best: #a3e635;
-  --rating-good: #facc15;
-  --rating-bad: #f87171;
-  --font-display: 'Syne', sans-serif;
-  --font-mono: 'DM Mono', monospace;
+  --muted: #6b7a6b;
+  --best: #a3e635;
+  --good: #facc15;
+  --bad: #f87171;
+  --font: 'Syne', sans-serif;
+  --mono: 'DM Mono', monospace;
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(163,230,53,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(163,230,53,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem}
+header{display:flex;align-items:center;justify-content:space-between;padding:2rem 0 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#0a0e0a;flex-shrink:0}
+.logo-text{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.logo-text span{color:var(--accent)}
+.header-stats{display:flex;gap:1.5rem;align-items:center}
+.stat-chip{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.stat-chip .val{font-family:var(--mono);font-size:20px;font-weight:500;line-height:1}
+.stat-chip .lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+.stat-chip.best .val{color:var(--best)}
+.stat-chip.good .val{color:var(--good)}
+.stat-chip.bad  .val{color:var(--bad)}
+.main{display:grid;grid-template-columns:1fr 320px;gap:2rem;align-items:start}
+@media(max-width:760px){.main{grid-template-columns:1fr}.header-stats{gap:1rem}.stat-chip .val{font-size:16px}header{padding:1.5rem 0 2rem}}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Action banner */
+.action-banner{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;margin-bottom:1rem;border:1.5px solid var(--accent);background:rgba(163,230,53,0.07);transition:all 0.3s}
+.action-banner.phase-aim{border-color:var(--you);background:rgba(56,189,248,0.07)}
+.action-banner.phase-done{border-color:var(--border);background:var(--surface2)}
+.banner-icon{font-size:22px;flex-shrink:0;line-height:1}
+.banner-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.2}
+.banner-sub{font-size:12px;color:var(--muted);margin-top:2px}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-display);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+/* Court */
+.court-wrap{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:1.25rem;position:relative}
+#court{width:100%;aspect-ratio:260/520;display:block;border-radius:12px;cursor:crosshair;transition:filter 0.2s}
+#court:hover{filter:brightness(1.05)}
+.steps{display:flex;gap:6px;margin-top:10px}
+.step{flex:1;height:3px;border-radius:2px;background:var(--surface2);transition:background 0.3s}
+.step.active{background:var(--accent)}
+.step.done{background:var(--accent);opacity:0.35}
+.step-labels{display:flex;margin-top:5px}
+.step-lbl{flex:1;font-size:10px;color:var(--muted);text-align:center}
+.step-lbl.active{color:var(--accent)}
 
-/* --- Grid background --- */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(163,230,53,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(163,230,53,0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none;
-  z-index: 0;
-}
+/* Panel */
+.panel{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(163,230,53,0.25),transparent)}
+.card-title{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.scenario-type{display:inline-block;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-bottom:8px}
+.scenario-name{font-size:16px;font-weight:700;margin-bottom:5px;line-height:1.2}
+.scenario-desc{font-size:13px;color:var(--muted);line-height:1.6}
 
-/* --- Layout --- */
-.app {
-  position: relative;
-  z-index: 1;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 1.5rem 4rem;
-  min-height: 100vh;
-}
+/* Positions */
+.pos-list{display:flex;flex-direction:column;gap:6px}
+.pos-badge{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:500;padding:7px 10px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);transition:border-color 0.3s}
+.pos-badge.active-you{border-color:rgba(56,189,248,0.5);background:rgba(56,189,248,0.06)}
+.pos-badge.active-aim{border-color:rgba(163,230,53,0.5);background:rgba(163,230,53,0.06)}
+.pos-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pos-status{margin-left:auto;font-size:11px;color:var(--muted);font-family:var(--mono)}
+.pos-status.pending{color:var(--you);animation:blink 1.2s ease-in-out infinite}
+.pos-status.aim-pending{color:var(--accent);animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
 
-/* --- Header --- */
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2rem 0 2.5rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 2.5rem;
-}
+/* Tip card */
+.tip-card{background:rgba(163,230,53,0.05);border-color:rgba(163,230,53,0.2)}
+.tip-card.tip-aim{background:rgba(56,189,248,0.05);border-color:rgba(56,189,248,0.2)}
+.tip-card.tip-done{background:var(--surface2);border-color:var(--border)}
+.tip-content{display:flex;gap:10px;align-items:flex-start}
+.tip-icon{font-size:18px;flex-shrink:0;line-height:1.4}
+.tip-text{font-size:13px;color:var(--muted);line-height:1.6}
+.tip-text b{color:var(--text);font-weight:600}
 
-.logo {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
+/* Rating */
+.rating-card{text-align:center;padding:1.5rem 1.25rem}
+.rating-icon{font-size:36px;line-height:1;margin-bottom:6px}
+.rating-word{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:6px}
+.rating-score{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px}
+.rating-desc{font-size:13px;line-height:1.6;color:var(--muted)}
+.rating-best{border-color:rgba(163,230,53,0.4)}.rating-best .rating-word{color:var(--best)}
+.rating-good{border-color:rgba(250,204,21,0.4)}.rating-good .rating-word{color:var(--good)}
+.rating-bad {border-color:rgba(248,113,113,0.4)}.rating-bad  .rating-word{color:var(--bad)}
 
-.logo-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 800;
-  color: #0a0e0a;
-  letter-spacing: -1px;
-  flex-shrink: 0;
-}
+/* Accuracy */
+.acc-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;font-family:var(--mono)}
+.acc-bar{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.acc-fill{height:100%;border-radius:2px;background:var(--accent);transition:width 0.5s cubic-bezier(0.4,0,0.2,1)}
 
-.logo-text {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  color: var(--text);
-}
+/* Buttons */
+.btn{display:block;width:100%;padding:12px 16px;font-family:var(--font);font-size:14px;font-weight:700;border-radius:12px;border:none;cursor:pointer;transition:all 0.15s;letter-spacing:0.02em}
+.btn-primary{background:var(--accent);color:#0a0e0a}
+.btn-primary:hover{background:#bef264;transform:translateY(-1px)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-secondary:hover:not(:disabled){background:var(--surface2);color:var(--text)}
+.btn-secondary:disabled{opacity:0.3;cursor:not-allowed}
 
-.logo-text span { color: var(--accent); }
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:0.75rem}
+.leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
-.header-stats {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-}
-
-.stat-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.stat-chip .val {
-  font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: 500;
-  line-height: 1;
-}
-
-.stat-chip .lbl {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.stat-chip.best .val { color: var(--rating-best); }
-.stat-chip.good .val { color: var(--rating-good); }
-.stat-chip.bad .val  { color: var(--rating-bad); }
-
-/* --- Main layout --- */
-.main {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 2rem;
-  align-items: start;
-}
-
-@media (max-width: 760px) {
-  .main { grid-template-columns: 1fr; }
-  .header-stats { gap: 1rem; }
-  .stat-chip .val { font-size: 16px; }
-  header { padding: 1.5rem 0 2rem; }
-}
-
-/* --- Court container --- */
-.court-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 1.5rem;
-  position: relative;
-}
-
-.court-label {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.phase-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: blink 1.2s ease-in-out infinite;
-}
-
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-#court {
-  width: 100%;
-  aspect-ratio: 260 / 520;
-  display: block;
-  border-radius: 12px;
-  cursor: crosshair;
-  transition: filter 0.2s;
-}
-
-#court:hover { filter: brightness(1.04); }
-
-/* step bar */
-.steps {
-  display: flex;
-  gap: 6px;
-  margin-top: 1rem;
-}
-
-.step {
-  flex: 1;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--surface2);
-  transition: background 0.3s;
-}
-
-.step.active { background: var(--accent); }
-.step.done   { background: var(--accent); opacity: 0.35; }
-
-/* --- Side panel --- */
-.panel { display: flex; flex-direction: column; gap: 16px; }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.25rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(163,230,53,0.3), transparent);
-}
-
-.card-title {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
-
-/* scenario card */
-.scenario-name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 6px;
-  line-height: 1.2;
-}
-
-.scenario-desc {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-
-/* position badges */
-.pos-list { display: flex; flex-direction: column; gap: 7px; }
-
-.pos-badge {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-}
-
-.pos-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.pos-badge .status {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-}
-
-/* rating */
-.rating-card {
-  text-align: center;
-  padding: 1.5rem 1.25rem;
-}
-
-.rating-icon {
-  font-size: 40px;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.rating-word {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.rating-score {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.rating-desc {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-muted);
-}
-
-.rating-best { border-color: rgba(163,230,53,0.35); }
-.rating-best .rating-word { color: var(--rating-best); }
-.rating-best::before { background: linear-gradient(90deg, transparent, rgba(163,230,53,0.4), transparent); }
-
-.rating-good { border-color: rgba(250,204,21,0.35); }
-.rating-good .rating-word { color: var(--rating-good); }
-.rating-good::before { background: linear-gradient(90deg, transparent, rgba(250,204,21,0.4), transparent); }
-
-.rating-bad { border-color: rgba(248,113,113,0.35); }
-.rating-bad .rating-word { color: var(--rating-bad); }
-.rating-bad::before { background: linear-gradient(90deg, transparent, rgba(248,113,113,0.4), transparent); }
-
-/* instruction card */
-.instr-list { display: flex; flex-direction: column; gap: 10px; }
-.instr-row { display: flex; gap: 10px; align-items: flex-start; }
-.instr-num {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--accent);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.instr-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
-.instr-text b { color: var(--text); font-weight: 600; }
-
-/* buttons */
-.btn {
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.02em;
-}
-
-.btn-primary {
-  background: var(--accent);
-  color: #0a0e0a;
-}
-
-.btn-primary:hover { background: #bef264; transform: translateY(-1px); }
-.btn-primary:active { transform: scale(0.98); }
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover { background: var(--surface2); color: var(--text); }
-
-/* legend */
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 1rem;
-}
-
-.leg {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.leg-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* toast */
-#toast {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 8px 20px;
-  font-size: 13px;
-  color: var(--text);
-  opacity: 0;
-  transition: all 0.25s;
-  pointer-events: none;
-  z-index: 100;
-  white-space: nowrap;
-}
-
-#toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* progress bar */
-.accuracy-bar-wrap {
-  margin-top: 10px;
-}
-.accuracy-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 5px;
-  font-family: var(--font-mono);
-}
-.accuracy-bar {
-  height: 4px;
-  background: var(--surface2);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.accuracy-fill {
-  height: 100%;
-  border-radius: 2px;
-  background: var(--accent);
-  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-}
+/* Toast */
+#toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:8px 20px;font-size:13px;color:var(--text);opacity:0;transition:all 0.25s;pointer-events:none;z-index:100;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.show.err{border-color:rgba(248,113,113,0.5);background:rgba(248,113,113,0.08);color:#f87171}
 </style>
 </head>
 <body>
@@ -462,44 +141,58 @@ header {
   </header>
 
   <div class="main">
-    <!-- Court -->
-    <div class="court-wrap">
-      <div class="court-label">
-        <div class="phase-dot" id="phase-dot"></div>
-        <span id="court-label-text">Place yourself on your side of the court</span>
+    <div>
+      <!-- Action banner -->
+      <div class="action-banner" id="action-banner">
+        <div class="banner-icon" id="banner-icon">📍</div>
+        <div class="banner-body">
+          <div class="banner-title" id="banner-title">Step 1 — Place yourself on the court</div>
+          <div class="banner-sub" id="banner-sub">Tap anywhere in the <b>bottom half</b> (your side) to set your position</div>
+        </div>
       </div>
-      <div class="legend">
-        <div class="leg"><div class="leg-dot" style="background:#38bdf8"></div>You</div>
-        <div class="leg"><div class="leg-dot" style="background:#fb923c"></div>Opponent(s)</div>
-        <div class="leg"><div class="leg-dot" style="background:#facc15"></div>Shuttle</div>
-        <div class="leg"><div class="leg-dot" style="background:#a3e635; border-radius:3px"></div>Target</div>
-      </div>
-      <svg id="court" viewBox="0 0 260 520" xmlns="http://www.w3.org/2000/svg"></svg>
-      <div class="steps">
-        <div class="step" id="step1"></div>
-        <div class="step" id="step2"></div>
-        <div class="step" id="step3"></div>
+
+      <div class="court-wrap">
+        <div class="legend">
+          <div class="leg"><div class="leg-dot" style="background:#38bdf8"></div>You</div>
+          <div class="leg"><div class="leg-dot" style="background:#fb923c"></div>Opponent(s)</div>
+          <div class="leg"><div class="leg-dot" style="background:#facc15"></div>Shuttle</div>
+          <div class="leg"><div class="leg-dot" style="background:#a3e635;border-radius:3px"></div>Your target</div>
+        </div>
+        <svg id="court" viewBox="0 0 260 520" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="steps">
+          <div class="step" id="step1"></div>
+          <div class="step" id="step2"></div>
+          <div class="step" id="step3"></div>
+        </div>
+        <div class="step-labels">
+          <div class="step-lbl" id="sl1">Place yourself</div>
+          <div class="step-lbl" id="sl2">Aim your shot</div>
+          <div class="step-lbl" id="sl3">See result</div>
+        </div>
       </div>
     </div>
 
-    <!-- Panel -->
     <div class="panel">
-
-      <!-- Scenario card -->
-      <div class="card" id="scenario-card">
+      <div class="card">
         <div class="card-title">Scenario</div>
-        <div class="scenario-name" id="sc-name">Loading...</div>
-        <div class="scenario-desc" id="sc-desc">Get ready!</div>
+        <div class="scenario-type" id="sc-type">Singles</div>
+        <div class="scenario-name" id="sc-name">—</div>
+        <div class="scenario-desc" id="sc-desc">—</div>
       </div>
 
-      <!-- Positions -->
       <div class="card">
-        <div class="card-title">Positions</div>
+        <div class="card-title">Court positions</div>
         <div class="pos-list" id="pos-list"></div>
       </div>
 
-      <!-- Rating (hidden initially) -->
-      <div class="card rating-card" id="rating-card" style="display:none;">
+      <div class="card tip-card" id="tip-card">
+        <div class="tip-content">
+          <div class="tip-icon" id="tip-icon">💡</div>
+          <div class="tip-text" id="tip-text">—</div>
+        </div>
+      </div>
+
+      <div class="card rating-card" id="rating-card" style="display:none">
         <div class="card-title">Shot rating</div>
         <div class="rating-icon" id="r-icon"></div>
         <div class="rating-word" id="r-word"></div>
@@ -507,269 +200,314 @@ header {
         <div class="rating-desc" id="r-desc"></div>
       </div>
 
-      <!-- Instructions -->
-      <div class="card" id="instr-card">
-        <div class="card-title">How to play</div>
-        <div class="instr-list">
-          <div class="instr-row"><div class="instr-num">1</div><div class="instr-text"><b>Place yourself</b> — tap your side (bottom half)</div></div>
-          <div class="instr-row"><div class="instr-num">2</div><div class="instr-text"><b>Aim your shot</b> — tap opponent's side (top half)</div></div>
-          <div class="instr-row"><div class="instr-num">3</div><div class="instr-text"><b>Get rated</b> — Bad / Good / Best based on difficulty for opponent</div></div>
-          <div class="instr-row"><div class="instr-num">✦</div><div class="instr-text">All players are <b>right-handed</b>. Corners, cross-courts, and space behind opponents score higher.</div></div>
-        </div>
-      </div>
-
-      <!-- Accuracy -->
-      <div class="card" id="accuracy-card" style="display:none;">
+      <div class="card" id="accuracy-card" style="display:none">
         <div class="card-title">Session accuracy</div>
-        <div class="accuracy-bar-wrap">
-          <div class="accuracy-label">
-            <span>Best + Good rate</span>
-            <span id="acc-pct">—</span>
-          </div>
-          <div class="accuracy-bar"><div class="accuracy-fill" id="acc-fill" style="width:0%"></div></div>
-        </div>
+        <div class="acc-label"><span>Best + Good rate</span><span id="acc-pct">—</span></div>
+        <div class="acc-bar"><div class="acc-fill" id="acc-fill" style="width:0%"></div></div>
       </div>
 
-      <!-- Buttons -->
       <button class="btn btn-primary" onclick="newScenario()">New scenario ↺</button>
-      <button class="btn btn-secondary" onclick="showHint()">Hint — where to aim?</button>
+      <button class="btn btn-secondary" id="hint-btn" onclick="activateHint()" disabled>Show best zone hint</button>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-const W=260, H=520, MID=H/2;
+const W=260,H=520,MID=H/2;
+const stats={best:0,good:0,bad:0,total:0};
+let state={phase:'place_self',playerPos:null,shuttlePos:null,opps:[],scenario:null,targetPos:null,lastResult:null,hintActive:false};
 
-const stats = { best:0, good:0, bad:0, total:0 };
-
-let state = {
-  phase: 'place_self',
-  playerPos: null,
-  shuttlePos: null,
-  opps: [],
-  scenario: null,
-  targetPos: null,
-  lastResult: null,
-  hintShown: false
-};
-
-const SCENARIOS = [
-  {
-    name: 'Rear Corner Pressure',
-    desc: 'Opponent deep in the back-right corner — in their backhand territory. Exploit the open space.',
-    type: 'singles',
-    gen(s) {
-      s.opps = [{x:rnd(155,225), y:rnd(55,130), label:'OPP'}];
-      s.shuttlePos = {x:rnd(30,100), y:rnd(340,450)};
-    }
-  },
-  {
-    name: 'Net Rusher',
-    desc: 'Opponent is pressing the net hard. You received a high clear — punish with a rear-court smash.',
-    type: 'singles',
-    gen(s) {
-      s.opps = [{x:rnd(80,180), y:rnd(18,70), label:'OPP'}];
-      s.shuttlePos = {x:rnd(80,180), y:rnd(340,450)};
-    }
-  },
-  {
-    name: 'Cross-Court Opportunity',
-    desc: 'Opponent covering one side — a straight shot is easy for them. Can you find the diagonal?',
-    type: 'singles',
-    gen(s) {
-      s.opps = [{x:rnd(145,220), y:rnd(80,180), label:'OPP'}];
-      s.shuttlePos = {x:rnd(55,120), y:rnd(350,440)};
-    }
-  },
-  {
-    name: 'Doubles — Both Up',
-    desc: 'Both opponents covering the front. They\'ve left the rear wide open — drive it over their heads.',
-    type: 'doubles',
-    gen(s) {
-      s.opps = [
-        {x:rnd(35,115), y:rnd(18,85), label:'O1'},
-        {x:rnd(130,215), y:rnd(18,85), label:'O2'}
-      ];
-      s.shuttlePos = {x:rnd(80,180), y:rnd(340,440)};
-    }
-  },
-  {
-    name: 'Doubles — Front & Back',
-    desc: 'Classic formation: one at net, one at rear. Find the gap between them or go wide.',
-    type: 'doubles',
-    gen(s) {
-      s.opps = [
-        {x:rnd(70,190), y:rnd(18,75), label:'O1'},
-        {x:rnd(60,185), y:rnd(140,225), label:'O2'}
-      ];
-      s.shuttlePos = {x:rnd(60,195), y:rnd(310,420)};
-    }
-  },
-  {
-    name: 'Wide Mid-Court',
-    desc: 'Opponent caught wide and off-balance mid-court. Force them to change direction.',
-    type: 'singles',
-    gen(s) {
-      s.opps = [{x:rnd(20,70), y:rnd(110,200), label:'OPP'}];
-      s.shuttlePos = {x:rnd(140,220), y:rnd(360,450)};
-    }
-  },
-  {
-    name: 'Doubles — One Down',
-    desc: 'One opponent is recovering from a diving return. Hit away from the recovering player.',
-    type: 'doubles',
-    gen(s) {
-      s.opps = [
-        {x:rnd(100,160), y:rnd(60,130), label:'O1'},
-        {x:rnd(155,225), y:rnd(200,260), label:'O2'}
-      ];
-      s.shuttlePos = {x:rnd(50,150), y:rnd(320,430)};
-    }
-  },
+const SCENARIOS=[
+  {name:'Rear Corner Pressure',type:'Singles',
+   desc:'Opponent pushed deep into the back-right corner — backhand territory. The left side of their court is exposed.',
+   tip:'Their backhand from the rear corner is weak. Aim <b>cross-court to the front-left</b> or drive deep to the back-left.',
+   gen(s){s.opps=[{x:rnd(155,220),y:rnd(55,125),label:'OPP'}];s.shuttlePos={x:rnd(30,110),y:rnd(330,450)}}},
+  {name:'Net Rusher',type:'Singles',
+   desc:'Opponent pressing the net hard after their drop shot. You received a high clear — rear court is wide open.',
+   tip:'They\'re at the net and can\'t retreat fast. A <b>deep smash to either back corner</b> forces a long scramble.',
+   gen(s){s.opps=[{x:rnd(80,180),y:rnd(15,70),label:'OPP'}];s.shuttlePos={x:rnd(80,180),y:rnd(330,450)}}},
+  {name:'Cross-Court Opening',type:'Singles',
+   desc:'Opponent drifted off-centre, covering their right side. A straight shot goes right back to them.',
+   tip:'Don\'t go straight! A <b>cross-court shot to their left</b> forces a full change of direction under pressure.',
+   gen(s){s.opps=[{x:rnd(150,220),y:rnd(80,180),label:'OPP'}];s.shuttlePos={x:rnd(55,120),y:rnd(350,440)}}},
+  {name:'Doubles — Both Up',type:'Doubles',
+   desc:'Both opponents rushed the front to cover a net shot. The entire rear court is unguarded.',
+   tip:'They abandoned the back — <b>drive deep to either rear corner</b>. Speed matters more than precision here.',
+   gen(s){s.opps=[{x:rnd(35,115),y:rnd(15,80),label:'O1'},{x:rnd(130,215),y:rnd(15,80),label:'O2'}];s.shuttlePos={x:rnd(80,180),y:rnd(330,440)}}},
+  {name:'Doubles — Front & Back',type:'Doubles',
+   desc:'Classic formation: O1 at net, O2 covering the rear. Sideline gaps between them are danger zones.',
+   tip:'Target the <b>sideline gaps</b> between the two players, or go wide to stretch their formation horizontally.',
+   gen(s){s.opps=[{x:rnd(70,190),y:rnd(15,70),label:'O1'},{x:rnd(60,185),y:rnd(145,225),label:'O2'}];s.shuttlePos={x:rnd(60,195),y:rnd(310,420)}}},
+  {name:'Mid-Court Drift',type:'Singles',
+   desc:'Opponent caught wide on the left, recovering from your previous shot — off-balance and out of position.',
+   tip:'They\'re leaning one way. Hit <b>behind them or to the far opposite corner</b> before they can reset.',
+   gen(s){s.opps=[{x:rnd(15,75),y:rnd(110,205),label:'OPP'}];s.shuttlePos={x:rnd(140,220),y:rnd(355,445)}}},
+  {name:'Doubles — One Recovering',type:'Doubles',
+   desc:'O2 is scrambling back from a diving net return. O1 can\'t cover the whole court alone.',
+   tip:'Aim <b>away from O1 who is set</b> — target the side where O2 is still scrambling back.',
+   gen(s){s.opps=[{x:rnd(95,165),y:rnd(55,130),label:'O1'},{x:rnd(155,225),y:rnd(195,265),label:'O2'}];s.shuttlePos={x:rnd(50,145),y:rnd(320,430)}}},
 ];
 
-function rnd(a,b){ return a + Math.random()*(b-a); }
+function rnd(a,b){return a+Math.random()*(b-a)}
 
 function newScenario(){
-  const sc = SCENARIOS[Math.floor(Math.random()*SCENARIOS.length)];
-  state = { phase:'place_self', playerPos:null, shuttlePos:null, opps:[], scenario:sc, targetPos:null, lastResult:null, hintShown:false };
+  const sc=SCENARIOS[Math.floor(Math.random()*SCENARIOS.length)];
+  state={phase:'place_self',playerPos:null,shuttlePos:null,opps:[],scenario:sc,targetPos:null,lastResult:null,hintActive:false};
   sc.gen(state);
   document.getElementById('rating-card').style.display='none';
-  updateScenarioCard();
-  updatePosDisplay();
-  updateSteps();
-  updateLabel();
-  drawCourt();
+  const hb=document.getElementById('hint-btn');
+  hb.disabled=true;hb.textContent='Show best zone hint';
+  updateScenarioCard();updateBanner();updateTip();updatePosDisplay();updateSteps();drawCourt();
 }
 
 function updateScenarioCard(){
-  const sc = state.scenario;
-  document.getElementById('sc-name').textContent = sc.name;
-  document.getElementById('sc-desc').textContent = sc.desc;
+  const sc=state.scenario;
+  document.getElementById('sc-type').textContent=sc.type;
+  document.getElementById('sc-name').textContent=sc.name;
+  document.getElementById('sc-desc').textContent=sc.desc;
 }
 
-function updateLabel(){
-  const map = {
-    place_self: 'Tap your side (bottom) to place yourself',
-    aim: 'Tap opponent\'s side (top) to aim your shot',
-    done: 'Tap "New scenario" to keep training'
+function updateBanner(){
+  const cfg={
+    place_self:{cls:'',icon:'📍',title:'Step 1 — Place yourself on the court',sub:'Tap anywhere in the <b>bottom half</b> — that\'s YOUR side of the net'},
+    aim:{cls:'phase-aim',icon:'🏸',title:'Step 2 — Aim your return shot',sub:'Tap anywhere in the <b>top half</b> — that\'s the OPPONENT\'S court'},
+    done:{cls:'phase-done',icon:'✅',title:'Shot rated! See your result →',sub:'Tap <b>New scenario</b> to practice another rally'}
   };
-  document.getElementById('court-label-text').textContent = map[state.phase];
-  const dot = document.getElementById('phase-dot');
-  dot.style.display = state.phase==='done' ? 'none' : 'block';
+  const b=cfg[state.phase];
+  document.getElementById('action-banner').className='action-banner '+b.cls;
+  document.getElementById('banner-icon').textContent=b.icon;
+  document.getElementById('banner-title').textContent=b.title;
+  document.getElementById('banner-sub').innerHTML=b.sub;
 }
 
-function updateSteps(){
-  const phases = ['place_self','aim','done'];
-  const idx = phases.indexOf(state.phase);
-  for(let i=0;i<3;i++){
-    const el = document.getElementById('step'+(i+1));
-    el.className = 'step' + (i<idx?' done':i===idx?' active':'');
+function updateTip(){
+  const sc=state.scenario;
+  const card=document.getElementById('tip-card');
+  const el=document.getElementById('tip-text');
+  const icon=document.getElementById('tip-icon');
+  if(state.phase==='place_self'){
+    card.className='card tip-card';
+    icon.textContent='💡';
+    el.innerHTML='Tap the <b>bottom half</b> to place yourself. The yellow shuttle shows where the shot came from — use that to judge your starting position.';
+  } else if(state.phase==='aim'){
+    card.className='card tip-card tip-aim';
+    icon.textContent='🎯';
+    el.innerHTML=sc.tip;
+  } else {
+    card.className='card tip-card tip-done';
+    icon.textContent='📊';
+    el.innerHTML='The coloured line shows your shot trajectory. Tap <b>New scenario ↺</b> to drill another position.';
   }
 }
 
 function updatePosDisplay(){
-  const s = state;
-  let html = '';
-  html += `<div class="pos-badge">
-    <div class="pos-dot" style="background:#38bdf8"></div>
-    You
-    <span class="status">${s.playerPos?'✓ placed':'tap court'}</span>
+  const s=state;
+  let html='';
+  const youActive=s.phase==='place_self';
+  const aimActive=s.phase==='aim';
+  html+=`<div class="pos-badge${youActive?' active-you':''}">
+    <div class="pos-dot" style="background:#38bdf8"></div><span>You</span>
+    <span class="pos-status${youActive?' pending':''}">${s.playerPos?'✓ placed':youActive?'← tap bottom':'—'}</span>
   </div>`;
   for(let i=0;i<s.opps.length;i++){
     const o=s.opps[i];
-    html += `<div class="pos-badge">
-      <div class="pos-dot" style="background:#fb923c"></div>
-      ${o.label||'Opp '+(i+1)}
-      <span class="status">✓ placed</span>
+    html+=`<div class="pos-badge">
+      <div class="pos-dot" style="background:#fb923c"></div><span>${o.label||'Opp '+(i+1)}</span>
+      <span class="pos-status">✓ placed</span>
     </div>`;
   }
-  html += `<div class="pos-badge">
-    <div class="pos-dot" style="background:#facc15"></div>
-    Shuttle
-    <span class="status">✓ placed</span>
+  html+=`<div class="pos-badge">
+    <div class="pos-dot" style="background:#facc15"></div><span>Shuttle</span>
+    <span class="pos-status">✓ placed</span>
   </div>`;
-  document.getElementById('pos-list').innerHTML = html;
+  html+=`<div class="pos-badge${aimActive?' active-aim':''}">
+    <div class="pos-dot" style="background:#a3e635;border-radius:3px"></div><span>Your target</span>
+    <span class="pos-status${aimActive?' aim-pending':''}">${s.targetPos?'✓ placed':aimActive?'← tap top':'—'}</span>
+  </div>`;
+  document.getElementById('pos-list').innerHTML=html;
 }
 
-function evalShot(tx, ty, opps, shuttlePos, playerPos){
-  let minDist = Infinity;
-  for(const o of opps){
-    const d = Math.sqrt((tx-o.x)**2 + (ty-o.y)**2);
-    if(d<minDist) minDist=d;
+function updateSteps(){
+  const order=['place_self','aim','done'];
+  const idx=order.indexOf(state.phase);
+  for(let i=0;i<3;i++){
+    document.getElementById('step'+(i+1)).className='step'+(i<idx?' done':i===idx?' active':'');
+    document.getElementById('sl'+(i+1)).className='step-lbl'+(i===idx?' active':'');
   }
-
-  let oppCoverScore = 0;
-  for(const o of opps){
-    const dx=tx-o.x, dy=ty-o.y;
-    const dist=Math.sqrt(dx**2+dy**2);
-    const anglePenalty = Math.abs(dx)/(dist+1);
-    oppCoverScore += Math.min(1, dist/130) * (0.5 + anglePenalty*0.5);
-  }
-  oppCoverScore /= opps.length;
-
-  const depthScore = Math.max(0, Math.min(1, (ty - MID-10)/(H-50-MID)));
-  const leftEdge = tx-8, rightEdge=(W-8)-tx;
-  const edgeScore = Math.max(0, 1 - Math.min(leftEdge,rightEdge)/70);
-
-  const shuttleOppDist = Math.sqrt((shuttlePos.x - opps[0].x)**2 + (shuttlePos.y - opps[0].y)**2);
-  const crossScore = Math.abs(tx - shuttlePos.x) / 100;
-
-  const total = oppCoverScore*0.5 + depthScore*0.25 + edgeScore*0.15 + crossScore*0.1;
-
-  let rating, desc, icon;
-  if(total > 0.70){
-    rating='best'; icon='◆';
-    desc='Outstanding placement. Maximum court coverage required — opponent is under serious pressure.';
-  } else if(total > 0.42){
-    rating='good'; icon='▲';
-    desc='Solid shot. Opponent is uncomfortable but can recover if quick. Aim deeper or wider next time.';
-  } else {
-    rating='bad'; icon='▼';
-    desc='Too easy for the opponent. Try targeting the opposite corner, or aim behind them.';
-  }
-  return { rating, desc, icon, score: Math.round(total*100), raw:total };
 }
 
-function getBestZone(opps, shuttlePos){
-  let bestScore=-1, bestX=130, bestY=MID+100;
-  for(let x=30;x<W-30;x+=20){
-    for(let y=MID+15;y<H-20;y+=20){
-      let s=0;
-      for(const o of opps){
-        const d=Math.sqrt((x-o.x)**2+(y-o.y)**2);
-        s+=Math.min(1,d/130);
-      }
-      s/=opps.length;
-      const dep=Math.max(0,Math.min(1,(y-MID-10)/(H-50-MID)));
-      const le=x-8, re=(W-8)-x;
-      const edge=Math.max(0,1-Math.min(le,re)/70);
-      const cr=Math.abs(x-shuttlePos.x)/100;
-      const total=s*0.5+dep*0.25+edge*0.15+cr*0.1;
-      if(total>bestScore){bestScore=total;bestX=x;bestY=y;}
+// ---- HINT: scans OPPONENT's half (y < MID) ----
+function getBestZone(opps,shuttlePos){
+  let best=-1,bx=130,by=80;
+  for(let x=20;x<=W-20;x+=15){
+    for(let y=12;y<=MID-12;y+=15){   // opponent's half only
+      let od=0;
+      for(const o of opps){const d=Math.sqrt((x-o.x)**2+(y-o.y)**2);od+=Math.min(1,d/120);}
+      od/=opps.length;
+      const depth=Math.max(0,1-(y-10)/(MID-20));     // smaller y = deeper on opp side
+      const edge=Math.max(0,1-Math.min(x-8,W-8-x)/60);
+      const cross=Math.abs(x-shuttlePos.x)/100;
+      const total=od*0.5+depth*0.25+edge*0.15+cross*0.1;
+      if(total>best){best=total;bx=x;by=y;}
     }
   }
-  return {x:bestX,y:bestY};
+  return{x:bx,y:by};
 }
 
-function showHint(){
-  if(state.phase!=='aim'){toast('Place yourself first!');return;}
-  if(state.hintShown){toast('Hint already shown — make your shot!');return;}
-  state.hintShown=true;
-  drawCourt(true);
-  toast('Best zone highlighted — now tap your target!');
+function activateHint(){
+  if(state.phase!=='aim'){toast('Place yourself first — then use the hint!',true);return;}
+  state.hintActive=true;
+  document.getElementById('hint-btn').disabled=true;
+  document.getElementById('hint-btn').textContent='Hint active — tap to aim!';
+  drawCourt();
+  toast('Best zone highlighted on opponent\'s side — tap inside it!');
 }
 
-function showRating(result){
-  const card = document.getElementById('rating-card');
-  card.style.display='block';
-  card.className='card rating-card rating-'+result.rating;
-  document.getElementById('r-icon').textContent=result.icon;
-  document.getElementById('r-word').textContent=result.rating.charAt(0).toUpperCase()+result.rating.slice(1);
-  document.getElementById('r-score').textContent='difficulty score: '+result.score+'/100';
-  document.getElementById('r-desc').textContent=result.desc;
+// ---- EVAL ----
+function evalShot(tx,ty,opps,shuttlePos){
+  let od=0;
+  for(const o of opps){
+    const dx=tx-o.x,dy=ty-o.y,dist=Math.sqrt(dx**2+dy**2);
+    od+=Math.min(1,dist/120)*(0.5+Math.abs(dx)/(dist+1)*0.5);
+  }
+  od/=opps.length;
+  const depth=Math.max(0,1-(ty-8)/(MID-20));  // smaller y = deeper in opp court
+  const edge=Math.max(0,1-Math.min(tx-8,W-8-tx)/60);
+  const cross=Math.abs(tx-shuttlePos.x)/100;
+  const total=od*0.5+depth*0.25+edge*0.15+cross*0.1;
+  let rating,desc,icon;
+  if(total>0.68){rating='best';icon='◆';desc='Outstanding! Maximum ground covered — opponent is under serious pressure.';}
+  else if(total>0.40){rating='good';icon='▲';desc='Solid shot. Opponent is uncomfortable but may recover with a fast step.';}
+  else{rating='bad';icon='▼';desc='Too easy for the opponent. Aim for the corners or behind them next time.';}
+  return{rating,desc,icon,score:Math.round(total*100)};
+}
+
+// ---- DRAW ----
+function drawCourt(){
+  const svg=document.getElementById('court');
+  const s=state;let g='';
+
+  g+=`<rect x="0" y="0" width="${W}" height="${H}" rx="12" fill="#1a4a1a"/>`;
+  for(let i=0;i<H;i+=18)g+=`<line x1="0" y1="${i}" x2="${W}" y2="${i}" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>`;
+
+  // Active half highlight + dashed tap guide
+  if(s.phase==='place_self'){
+    g+=`<rect x="0" y="${MID}" width="${W}" height="${MID}" fill="rgba(56,189,248,0.07)"/>`;
+    g+=`<rect x="4" y="${MID+4}" width="${W-8}" height="${MID-8}" rx="6" fill="none" stroke="rgba(56,189,248,0.45)" stroke-width="1.5" stroke-dasharray="6,4"/>`;
+  } else if(s.phase==='aim'){
+    g+=`<rect x="0" y="0" width="${W}" height="${MID}" fill="rgba(163,230,53,0.06)"/>`;
+    g+=`<rect x="4" y="4" width="${W-8}" height="${MID-8}" rx="6" fill="none" stroke="rgba(163,230,53,0.5)" stroke-width="1.5" stroke-dasharray="6,4"/>`;
+  }
+
+  // Lines
+  const L='stroke="rgba(255,255,255,0.78)" stroke-width="1.4"';
+  g+=`<rect x="8" y="8" width="${W-16}" height="${H-16}" rx="2" fill="none" ${L}/>`;
+  g+=`<line x1="8" y1="${MID}" x2="${W-8}" y2="${MID}" stroke="rgba(255,255,255,0.92)" stroke-width="2.4"/>`;
+  g+=`<line x1="${W/2}" y1="8" x2="${W/2}" y2="${MID-22}" ${L} opacity="0.6"/>`;
+  g+=`<line x1="${W/2}" y1="${MID+22}" x2="${W/2}" y2="${H-8}" ${L} opacity="0.6"/>`;
+  g+=`<line x1="8" y1="80" x2="${W-8}" y2="80" ${L} opacity="0.45"/>`;
+  g+=`<line x1="8" y1="${H-80}" x2="${W-8}" y2="${H-80}" ${L} opacity="0.45"/>`;
+  g+=`<line x1="8" y1="${MID+22}" x2="${W-8}" y2="${MID+22}" ${L} opacity="0.45"/>`;
+  g+=`<line x1="8" y1="${MID-22}" x2="${W-8}" y2="${MID-22}" ${L} opacity="0.45"/>`;
+
+  // Net
+  g+=`<rect x="4" y="${MID-4}" width="${W-8}" height="8" rx="3" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.55)" stroke-width="0.8"/>`;
+  for(let x=10;x<W-8;x+=7)g+=`<line x1="${x}" y1="${MID-4}" x2="${x+3}" y2="${MID+4}" stroke="rgba(255,255,255,0.28)" stroke-width="0.5"/>`;
+
+  // Court labels
+  const lf=`font-size="10" font-family="'Syne',sans-serif" font-weight="700" letter-spacing="2" text-anchor="middle"`;
+  g+=`<text x="${W/2}" y="36" ${lf} fill="${s.phase==='aim'?'rgba(163,230,53,0.75)':'rgba(255,255,255,0.22)'}">OPPONENT</text>`;
+  g+=`<text x="${W/2}" y="${H-20}" ${lf} fill="${s.phase==='place_self'?'rgba(56,189,248,0.75)':'rgba(255,255,255,0.22)'}">YOUR SIDE</text>`;
+
+  // Animated tap guides
+  if(s.phase==='place_self'&&!s.playerPos){
+    g+=`<text x="${W/2}" y="${MID+58}" text-anchor="middle" fill="rgba(56,189,248,0.65)" font-size="11" font-family="'Syne',sans-serif">tap here ↓</text>`;
+  }
+  if(s.phase==='aim'){
+    g+=`<text x="${W/2}" y="${MID-52}" text-anchor="middle" fill="rgba(163,230,53,0.65)" font-size="11" font-family="'Syne',sans-serif">↑ tap here to aim</text>`;
+  }
+
+  // Hint zone — always on opponent's half
+  if(state.hintActive&&s.phase==='aim'&&s.shuttlePos&&s.opps.length>0){
+    const bz=getBestZone(s.opps,s.shuttlePos);
+    // bz.y is guaranteed < MID from the scan range
+    g+=`<circle cx="${bz.x}" cy="${bz.y}" r="30" fill="rgba(163,230,53,0.1)" stroke="#a3e635" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+    g+=`<circle cx="${bz.x}" cy="${bz.y}" r="8" fill="rgba(163,230,53,0.3)" stroke="#a3e635" stroke-width="1.5"/>`;
+    g+=`<text x="${bz.x}" y="${bz.y-36}" text-anchor="middle" fill="#a3e635" font-size="9" font-family="'DM Mono',monospace">best zone</text>`;
+  }
+
+  // Shuttle
+  if(s.shuttlePos){
+    const sx=s.shuttlePos.x,sy=s.shuttlePos.y;
+    for(let a=0;a<360;a+=45){const r=a*Math.PI/180;g+=`<line x1="${sx}" y1="${sy}" x2="${sx+Math.cos(r)*13}" y2="${sy+Math.sin(r)*13}" stroke="#facc15" stroke-width="0.8" opacity="0.38"/>`;}
+    g+=`<circle cx="${sx}" cy="${sy}" r="9" fill="#facc15" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>`;
+    g+=`<circle cx="${sx}" cy="${sy}" r="3.5" fill="rgba(0,0,0,0.3)"/>`;
+    g+=`<text x="${sx}" y="${sy-13}" text-anchor="middle" fill="#facc15" font-size="9" font-family="'DM Mono',monospace" opacity="0.75">shuttle</text>`;
+  }
+
+  // Opponents
+  for(const o of s.opps){
+    g+=`<circle cx="${o.x}" cy="${o.y}" r="18" fill="rgba(251,146,60,0.18)" stroke="#fb923c" stroke-width="1.2"/>`;
+    g+=`<circle cx="${o.x}" cy="${o.y}" r="12" fill="#fb923c"/>`;
+    g+=`<text x="${o.x}" y="${o.y+4}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="'Syne',sans-serif">${o.label||'O'}</text>`;
+  }
+
+  // Player
+  if(s.playerPos){
+    g+=`<circle cx="${s.playerPos.x}" cy="${s.playerPos.y}" r="18" fill="rgba(56,189,248,0.18)" stroke="#38bdf8" stroke-width="1.2"/>`;
+    g+=`<circle cx="${s.playerPos.x}" cy="${s.playerPos.y}" r="12" fill="#38bdf8"/>`;
+    g+=`<text x="${s.playerPos.x}" y="${s.playerPos.y+4}" text-anchor="middle" fill="#0a0e0a" font-size="9" font-weight="700" font-family="'Syne',sans-serif">YOU</text>`;
+  }
+
+  // Target + trajectory
+  if(s.targetPos&&s.lastResult){
+    const rc=s.lastResult;
+    const col=rc.rating==='best'?'#a3e635':rc.rating==='good'?'#facc15':'#f87171';
+    if(s.shuttlePos)g+=`<line x1="${s.shuttlePos.x}" y1="${s.shuttlePos.y}" x2="${s.targetPos.x}" y2="${s.targetPos.y}" stroke="${col}" stroke-width="1.8" stroke-dasharray="7,4" opacity="0.72"/>`;
+    g+=`<circle cx="${s.targetPos.x}" cy="${s.targetPos.y}" r="14" fill="${col}" fill-opacity="0.18" stroke="${col}" stroke-width="2"/>`;
+    g+=`<circle cx="${s.targetPos.x}" cy="${s.targetPos.y}" r="5" fill="${col}"/>`;
+    g+=`<text x="${s.targetPos.x}" y="${s.targetPos.y-18}" text-anchor="middle" fill="${col}" font-size="10" font-family="'DM Mono',monospace">${rc.rating}</text>`;
+  }
+
+  svg.innerHTML=g;
+  svg.onclick=function(e){
+    const r=svg.getBoundingClientRect();
+    handleClick((e.clientX-r.left)*(W/r.width),(e.clientY-r.top)*(H/r.height));
+  };
+}
+
+// ---- CLICK ----
+function handleClick(cx,cy){
+  const s=state;
+  if(s.phase==='place_self'){
+    if(cy<MID+5){toast('Wrong side! Tap the BOTTOM half — that\'s your side.',true);return;}
+    s.playerPos={x:cx,y:cy};s.phase='aim';
+    document.getElementById('hint-btn').disabled=false;
+    updateBanner();updateTip();updatePosDisplay();updateSteps();drawCourt();return;
+  }
+  if(s.phase==='aim'){
+    if(cy>MID-5){toast('Wrong side! Tap the TOP half — opponent\'s court.',true);return;}
+    s.targetPos={x:cx,y:cy};
+    const result=evalShot(cx,cy,s.opps,s.shuttlePos);
+    s.lastResult=result;s.phase='done';
+    stats[result.rating]++;stats.total++;
+    document.getElementById('stat-best').textContent=stats.best;
+    document.getElementById('stat-good').textContent=stats.good;
+    document.getElementById('stat-bad').textContent=stats.bad;
+    document.getElementById('hint-btn').disabled=true;
+    updateBanner();updateTip();updatePosDisplay();updateSteps();drawCourt();showRating(result);updateAccuracy();return;
+  }
+  if(s.phase==='done')toast('Tap "New scenario ↺" to keep training!');
+}
+
+function showRating(r){
+  const card=document.getElementById('rating-card');
+  card.style.display='block';card.className='card rating-card rating-'+r.rating;
+  document.getElementById('r-icon').textContent=r.icon;
+  document.getElementById('r-word').textContent=r.rating.charAt(0).toUpperCase()+r.rating.slice(1);
+  document.getElementById('r-score').textContent='difficulty score: '+r.score+'/100';
+  document.getElementById('r-desc').textContent=r.desc;
 }
 
 function updateAccuracy(){
@@ -780,140 +518,13 @@ function updateAccuracy(){
   document.getElementById('acc-fill').style.width=rate+'%';
 }
 
-function toast(msg){
+let _tt;
+function toast(msg,err=false){
   const el=document.getElementById('toast');
-  el.textContent=msg;
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t=setTimeout(()=>el.classList.remove('show'),2000);
+  el.textContent=msg;el.className='show'+(err?' err':'');
+  clearTimeout(_tt);_tt=setTimeout(()=>{el.className=''},2400);
 }
 
-// ---- COURT DRAWING ----
-
-function drawCourt(showHintZone=false){
-  const svg=document.getElementById('court');
-  const s=state;
-  let g='';
-
-  // Court surface
-  g+=`<rect x="0" y="0" width="${W}" height="${H}" rx="12" fill="#1a4a1a"/>`;
-  // Subtle texture stripes
-  for(let i=0;i<H;i+=18){
-    g+=`<line x1="0" y1="${i}" x2="${W}" y2="${i}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
-  }
-
-  // Lines
-  const L='stroke="rgba(255,255,255,0.82)" stroke-width="1.4"';
-  g+=`<rect x="8" y="8" width="${W-16}" height="${H-16}" rx="2" fill="none" ${L}/>`;
-  g+=`<line x1="8" y1="${MID}" x2="${W-8}" y2="${MID}" ${L} stroke-width="2"/>`;
-  g+=`<line x1="${W/2}" y1="8" x2="${W/2}" y2="${MID-20}" ${L} stroke-width="1" opacity="0.7"/>`;
-  g+=`<line x1="${W/2}" y1="${MID+20}" x2="${W/2}" y2="${H-8}" ${L} stroke-width="1" opacity="0.7"/>`;
-  g+=`<line x1="8" y1="80" x2="${W-8}" y2="80" ${L} opacity="0.6"/>`;
-  g+=`<line x1="8" y1="${H-80}" x2="${W-8}" y2="${H-80}" ${L} opacity="0.6"/>`;
-  g+=`<line x1="8" y1="${MID+20}" x2="${W-8}" y2="${MID+20}" ${L} opacity="0.6"/>`;
-  g+=`<line x1="8" y1="${MID-20}" x2="${W-8}" y2="${MID-20}" ${L} opacity="0.6"/>`;
-
-  // Net
-  g+=`<rect x="4" y="${MID-3}" width="${W-8}" height="6" rx="2" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>`;
-  for(let x=10;x<W-8;x+=7){
-    g+=`<line x1="${x}" y1="${MID-3}" x2="${x+3}" y2="${MID+3}" stroke="rgba(255,255,255,0.35)" stroke-width="0.5"/>`;
-  }
-
-  // Side labels
-  g+=`<text x="${W/2}" y="46" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10" font-family="'Syne',sans-serif" font-weight="700" letter-spacing="3">OPPONENT</text>`;
-  g+=`<text x="${W/2}" y="${H-28}" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10" font-family="'Syne',sans-serif" font-weight="700" letter-spacing="3">YOUR SIDE</text>`;
-
-  // Hint zone
-  if(showHintZone && s.shuttlePos && s.opps.length>0){
-    const best=getBestZone(s.opps, s.shuttlePos);
-    g+=`<circle cx="${best.x}" cy="${best.y}" r="28" fill="rgba(163,230,53,0.12)" stroke="#a3e635" stroke-width="1.5" stroke-dasharray="5,3"/>`;
-    g+=`<circle cx="${best.x}" cy="${best.y}" r="6" fill="rgba(163,230,53,0.35)" stroke="#a3e635" stroke-width="1"/>`;
-    g+=`<text x="${best.x}" y="${best.y-34}" text-anchor="middle" fill="#a3e635" font-size="10" font-family="'DM Mono',monospace">best zone</text>`;
-  }
-
-  // Shuttle
-  if(s.shuttlePos){
-    g+=`<circle cx="${s.shuttlePos.x}" cy="${s.shuttlePos.y}" r="9" fill="#facc15" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>`;
-    g+=`<circle cx="${s.shuttlePos.x}" cy="${s.shuttlePos.y}" r="4" fill="rgba(0,0,0,0.3)"/>`;
-    for(let a=0;a<360;a+=45){
-      const rad=a*Math.PI/180;
-      g+=`<line x1="${s.shuttlePos.x}" y1="${s.shuttlePos.y}" x2="${s.shuttlePos.x+Math.cos(rad)*12}" y2="${s.shuttlePos.y+Math.sin(rad)*12}" stroke="#facc15" stroke-width="0.7" opacity="0.5"/>`;
-    }
-  }
-
-  // Opponents
-  for(const o of s.opps){
-    g+=`<circle cx="${o.x}" cy="${o.y}" r="16" fill="rgba(251,146,60,0.25)" stroke="#fb923c" stroke-width="1.5"/>`;
-    g+=`<circle cx="${o.x}" cy="${o.y}" r="12" fill="#fb923c"/>`;
-    g+=`<text x="${o.x}" y="${o.y+4}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="'Syne',sans-serif">${o.label||'O'}</text>`;
-  }
-
-  // Player
-  if(s.playerPos){
-    g+=`<circle cx="${s.playerPos.x}" cy="${s.playerPos.y}" r="16" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="1.5"/>`;
-    g+=`<circle cx="${s.playerPos.x}" cy="${s.playerPos.y}" r="12" fill="#38bdf8"/>`;
-    g+=`<text x="${s.playerPos.x}" y="${s.playerPos.y+4}" text-anchor="middle" fill="#0a0e0a" font-size="9" font-weight="700" font-family="'Syne',sans-serif">YOU</text>`;
-  }
-
-  // Target + trajectory
-  if(s.targetPos){
-    const rc=s.lastResult;
-    const col=rc.rating==='best'?'#a3e635':rc.rating==='good'?'#facc15':'#f87171';
-    if(s.shuttlePos){
-      g+=`<line x1="${s.shuttlePos.x}" y1="${s.shuttlePos.y}" x2="${s.targetPos.x}" y2="${s.targetPos.y}" stroke="${col}" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>`;
-    }
-    g+=`<circle cx="${s.targetPos.x}" cy="${s.targetPos.y}" r="12" fill="${col}" fill-opacity="0.25" stroke="${col}" stroke-width="2"/>`;
-    g+=`<circle cx="${s.targetPos.x}" cy="${s.targetPos.y}" r="5" fill="${col}"/>`;
-    g+=`<text x="${s.targetPos.x}" y="${s.targetPos.y-17}" text-anchor="middle" fill="${col}" font-size="10" font-family="'DM Mono',monospace">${rc.rating}</text>`;
-  }
-
-  svg.innerHTML=g;
-
-  svg.onclick=function(e){
-    const rect=svg.getBoundingClientRect();
-    const scX=W/rect.width, scY=H/rect.height;
-    const cx=(e.clientX-rect.left)*scX;
-    const cy=(e.clientY-rect.top)*scY;
-    handleClick(cx,cy);
-  };
-}
-
-function handleClick(cx,cy){
-  const s=state;
-  if(s.phase==='place_self'){
-    if(cy < MID+15){ toast('Tap the bottom half — that\'s your side!'); return; }
-    s.playerPos={x:cx,y:cy};
-    s.phase='aim';
-    updatePosDisplay();
-    updateSteps();
-    updateLabel();
-    drawCourt();
-    return;
-  }
-  if(s.phase==='aim'){
-    if(cy > MID-15){ toast('Aim for the top half — opponent\'s side!'); return; }
-    s.targetPos={x:cx,y:cy};
-    const result=evalShot(cx,cy,s.opps,s.shuttlePos,s.playerPos);
-    s.lastResult=result;
-    s.phase='done';
-    stats[result.rating]++;
-    stats.total++;
-    document.getElementById('stat-best').textContent=stats.best;
-    document.getElementById('stat-good').textContent=stats.good;
-    document.getElementById('stat-bad').textContent=stats.bad;
-    updateSteps();
-    updateLabel();
-    drawCourt();
-    showRating(result);
-    updateAccuracy();
-    return;
-  }
-  if(s.phase==='done'){
-    toast('Tap "New scenario" to continue!');
-  }
-}
-
-// Start!
 newScenario();
 </script>
 </body>
